@@ -1,0 +1,13 @@
+# Salidas generadas por el flujo (se regeneran con yosys, nextpnr y gowin_pack)
+*.json
+*.fs
+
+
+# Reglas udev descargadas en la instalación
+99-openfpgaloader.rules
+
+# Editor y sistema
+*.swp
+*~
+.vscode/
+.DS_Store
