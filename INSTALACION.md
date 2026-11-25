@@ -1,120 +1,68 @@
-# Flujo abierto FPGA a mano, Tang Nano 9K
+# Instalación del entorno, Tang Nano 9K
 
-Placa Tang Nano 9K, chip GW1NR-9C, paquete QN88P, reloj de 27 MHz.
+## 1. OSS CAD Suite
 
-## 0. Entorno
+Trae Yosys, nextpnr-himbaechel, gowin_pack (Apicula) y openFPGALoader en un solo paquete.
+
+Descarga el `.tgz` de Linux x64 más reciente desde https://github.com/YosysHQ/oss-cad-suite-build/releases y extráelo.
+
+```bash
+mkdir -p ~/oss-cad
+tar -xzf ~/Descargas/oss-cad-suite-linux-x64-*.tgz -C ~/oss-cad
+```
+
+Queda en `~/oss-cad/oss-cad-suite`.
+
+## 2. Activar el entorno
+
+En cada terminal nueva.
 
 ```bash
 source ~/oss-cad/oss-cad-suite/environment
-cd ~/Escritorio/tesla/Yosys_fpga
 ```
 
-Verificación rápida.
+El prompt muestra el prefijo `(OSS CAD Suite)` cuando está activo.
+
+## 3. Verificar las herramientas
 
 ```bash
 yosys -V
 nextpnr-himbaechel --version
 gowin_pack -h
 openFPGALoader --Version
+```
+
+Ojo, el binario es `nextpnr-himbaechel`, no `nextpnr`.
+
+## 4. Acceso USB a la placa
+
+Sin reglas udev, openFPGALoader solo funciona con `sudo`. Para usarlo como usuario normal.
+
+```bash
+wget https://raw.githubusercontent.com/trabucayre/openFPGALoader/master/99-openfpgaloader.rules
+sudo cp 99-openfpgaloader.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo usermod -a $USER -G plugdev
+```
+
+Cierra sesión y vuelve a entrar para que tome el grupo. Luego, con la placa conectada.
+
+```bash
 openFPGALoader --detect
 ```
 
-## 1. Síntesis con Yosys, etapa por etapa
+Debe reportar idcode `0x100481b`, GW1N(R)-9C.
 
-Archivo de entrada, `top.v`, con el módulo `top`, entrada `clk` y salida `led`.
+## 5. Graphviz (opcional)
 
-Entra al shell interactivo.
-
-```bash
-yosys
-```
-
-Dentro de Yosys, un comando a la vez.
-
-```
-read_verilog top.v
-hierarchy -check -top top
-proc
-opt
-synth_gowin -top top -json top.json
-stat
-show -format svg -viewer none -prefix top_grafo
-```
-
-Qué hace cada uno.
-
-| Comando | Qué hace |
-|---|---|
-| `read_verilog` | Lee el Verilog y lo convierte en un AST interno. |
-| `hierarchy -check -top top` | Resuelve módulos e instancias, fija `top` como raíz y falla si falta algo. |
-| `proc` | Traduce los bloques `always` a celdas lógicas, flip-flops y multiplexores. |
-| `opt` | Limpia, elimina lógica muerta y simplifica constantes. |
-| `synth_gowin` | Corre todo el flujo de síntesis hacia celdas Gowin (LUT4, DFF, ALU) y escribe `top.json`. |
-| `stat` | Imprime cuántas celdas de cada tipo usa el diseño. |
-| `show` | Genera el grafo del diseño. Con `-viewer none` solo escribe el archivo, sin abrir ventana. |
-
-Nota. `show` necesita `dot` de Graphviz. Si no está en el entorno, usa `-format dot`.
-
-Alternativa en una sola línea, sin interactivo.
+Solo para generar el grafo del diseño con `show` en Yosys.
 
 ```bash
-yosys -p "read_verilog top.v; synth_gowin -top top -json top.json"
+sudo apt install graphviz
 ```
-
-Ver las etapas con `help <comando>` dentro de Yosys.
-
-## 2. Place and route con nextpnr
-
-Primero el archivo de pines, `top.cst`. Confirma los pines en la wiki de Sipeed antes de usarlo.
-
-```
-IO_LOC "clk" 52;
-IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
-IO_LOC "led" 10;
-IO_PORT "led" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;
-```
-
-Luego.
-
-```bash
-nextpnr-himbaechel --json top.json --write pnr.json \
-  --device GW1NR-LV9QN88PC6/I5 \
-  --vopt family=GW1N-9C \
-  --vopt cst=top.cst
-```
-
-Revisa al final del log que la frecuencia máxima sea mayor a 27 MHz. Para que nextpnr use ese objetivo, agrega `--freq 27`.
-
-## 3. Empaquetado con gowin_pack
-
-```bash
-gowin_pack -d GW1N-9C -o top.fs pnr.json
-```
-
-Los avisos de Numpy y Msgspec son inofensivos.
-
-## 4. Carga con openFPGALoader
-
-A SRAM, volátil, se pierde al quitar la alimentación.
-
-```bash
-openFPGALoader -b tangnano9k top.fs
-```
-
-A flash, persistente.
-
-```bash
-openFPGALoader -b tangnano9k -f top.fs
-```
-
-## 5. Makefile
-
-Pendiente, se hace al final, cuando los pasos 1 a 4 funcionen a mano.
 
 ## Fuentes
 
-- Yosys, comandos y `synth_gowin`, https://yosyshq.readthedocs.io/projects/yosys/en/latest/
-- Project Apicula, uso de nextpnr-himbaechel y gowin_pack, https://github.com/YosysHQ/apicula
-- Ejemplos de Apicula para Tang Nano 9K, https://github.com/YosysHQ/apicula/tree/master/examples
-- openFPGALoader, https://trabucayre.github.io/openFPGALoader/
-- Placa Tang Nano 9K, pines y esquemático, https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-9K/Nano-9K.html
+- OSS CAD Suite, https://github.com/YosysHQ/oss-cad-suite-build
+- openFPGALoader, instalación y udev, https://trabucayre.github.io/openFPGALoader/guide/install.html
+- Wiki de la placa, https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-9K/Nano-9K.html
