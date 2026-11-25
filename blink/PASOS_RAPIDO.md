@@ -1,9 +1,9 @@
 # Blink en Tang Nano 9K con flujo open source resumen xd
-desde `blink/`. Instalación del entorno en [INSTALACION.md](INSTALACION.md).
+desde `blink/`. Instalación del entorno en [INSTALACION.md](../INSTALACION.md).
 
 ## Resumen del flujo
 
-![Pasos del flujo](imgs/flujo_nano.png)
+![Pasos del flujo](../imgs/flujo_nano.png)
 
 
 ## 1. Entorno
@@ -16,9 +16,9 @@ yosys
 
 Yosys debe abrirse dentro de `blink/`, si no, no encuentra `top.v`.
 
-![Entorno cargado](imgs/02_entorno_source_y_yosys.png)
+![Entorno cargado](../imgs/02_entorno_source_y_yosys.png)
 
-![Yosys dentro de blink](imgs/03_yosys_dentro_de_blink.png)
+![Yosys dentro de blink](../imgs/03_yosys_dentro_de_blink.png)
 
 ## 2. Síntesis con Yosys
 
@@ -33,15 +33,15 @@ synth_gowin -top top -json top.json
 stat
 ```
 
-![read_verilog y hierarchy](imgs/04_read_verilog_hierarchy.png)
+![read_verilog y hierarchy](../imgs/04_read_verilog_hierarchy.png)
 
-![proc](imgs/05_proc_inicio.png)
+![proc](../imgs/05_proc_inicio.png)
 
-![opt](imgs/08_opt_inicio_merge.png)
+![opt](../imgs/08_opt_inicio_merge.png)
 
-![synth_gowin](imgs/11_opt_fin_y_synth_gowin.png)
+![synth_gowin](../imgs/11_opt_fin_y_synth_gowin.png)
 
-![stat](imgs/14_stat_celdas.png)
+![stat](../imgs/14_stat_celdas.png)
 
 ## 3. Place and route
 
@@ -55,7 +55,7 @@ nextpnr-himbaechel --json top.json --write pnr.json \
   --freq 27
 ```
 
-![nextpnr](imgs/15_nextpnr_inicio.png)
+![nextpnr](../imgs/15_nextpnr_inicio.png)
 
 Resultado obtenido, frecuencia máxima de 142,82 MHz.
 
@@ -67,7 +67,7 @@ gowin_pack -d GW1N-9C -o top.fs pnr.json
 
 Los avisos de Numpy, Msgspec y fastcrc son inofensivos.
 
-![gowin_pack](imgs/16_gowin_pack.png)
+![gowin_pack](../imgs/16_gowin_pack.png)
 
 ## 5. Carga
 
@@ -83,6 +83,6 @@ A flash, persistente.
 openFPGALoader -b tangnano9k -f top.fs
 ```
 
-![Escribiendo flash](imgs/17_openfpgaloader_escribiendo_flash.png)
+![Escribiendo flash](../imgs/17_openfpgaloader_escribiendo_flash.png)
 
-![CRC correcto](imgs/18_openfpgaloader_crc_success.png)
+![CRC correcto](../imgs/18_openfpgaloader_crc_success.png)

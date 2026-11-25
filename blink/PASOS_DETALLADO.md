@@ -6,7 +6,7 @@ Tutorial de como cargar un simple archivo **verilog** en la FPGA Tang Nano 9K us
 - gowin_pack (Apicula)
 - openFPGALoader
 
-Antes de empezar, instala el entorno siguiendo [INSTALACION.md](INSTALACION.md).
+Antes de empezar, instala el entorno siguiendo [INSTALACION.md](../INSTALACION.md).
 
 ## Contenido
 
@@ -21,7 +21,7 @@ Antes de empezar, instala el entorno siguiendo [INSTALACION.md](INSTALACION.md).
 
 ## 1. Resumen del flujo
 
-![Pasos del flujo](imgs/flujo_nano.png)
+![Pasos del flujo](../imgs/flujo_nano.png)
 
 | Etapa | Herramienta | Entrada | Salida |
 |---|---|---|---|
@@ -119,15 +119,15 @@ yosys
 
 El prefijo `(OSS CAD Suite)` en el prompt indica que el entorno está activo.
 
-![Entorno cargado y Yosys iniciado](imgs/02_entorno_source_y_yosys.png)
+![Entorno cargado y Yosys iniciado](../imgs/02_entorno_source_y_yosys.png)
 
 Yosys toma el directorio actual como base para leer archivos. Si se abre desde otra carpeta, `read_verilog top.v` falla con `File 'top.v' not found`. Esto ocurrió al abrirlo desde `/home/tesla`.
 
-![Yosys abierto desde el home](imgs/01_yosys_inicio_desde_home.png)
+![Yosys abierto desde el home](../imgs/01_yosys_inicio_desde_home.png)
 
 Además, el comando `!cd` dentro de Yosys no cambia de directorio, porque cada comando con `!` corre en un subshell que termina al acabar. Hay que salir y abrir Yosys en la carpeta correcta.
 
-![Yosys abierto dentro de blink](imgs/03_yosys_dentro_de_blink.png)
+![Yosys abierto dentro de blink](../imgs/03_yosys_dentro_de_blink.png)
 
 ## 5. Síntesis con Yosys
 
@@ -148,7 +148,7 @@ stat
 
 En la salida, `Top module: \top` y `Removed 0 unused modules` confirman que el diseño tiene un solo módulo y que `top` es la raíz.
 
-![read_verilog y hierarchy](imgs/04_read_verilog_hierarchy.png)
+![read_verilog y hierarchy](../imgs/04_read_verilog_hierarchy.png)
 
 ### 5.2 `proc`
 
@@ -162,41 +162,41 @@ Traduce los bloques `always`, que son procesos, en celdas de lógica. Se divide 
 | `PROC_MUX` | Convierte árboles de decisión en multiplexores. |
 | `PROC_DFF` | Crea los flip-flops. |
 
-![proc, inicio](imgs/05_proc_inicio.png)
+![proc, inicio](../imgs/05_proc_inicio.png)
 
 `PROC_ARST` encontró el reset asíncrono `\sys_rst_n` en los dos procesos, el de las líneas 9 y 18 de `top.v`.
 
-![proc, reset asíncrono](imgs/06_proc_rmdead_prune_arst.png)
+![proc, reset asíncrono](../imgs/06_proc_rmdead_prune_arst.png)
 
 `PROC_MUX` creó decodificadores para `led[5:0]` y `counter[23:0]`. `PROC_DFF` creó una celda `$adff`, un flip-flop con reset asíncrono, para cada registro.
 
-![proc, multiplexores y flip-flops](imgs/07_proc_mux_dff.png)
+![proc, multiplexores y flip-flops](../imgs/07_proc_mux_dff.png)
 
 ### 5.3 `opt`
 
 Optimiza el diseño en pasadas que se repiten hasta que no queda nada por mejorar.
 
-![opt, fusión de celdas](imgs/08_opt_inicio_merge.png)
+![opt, fusión de celdas](../imgs/08_opt_inicio_merge.png)
 
 `OPT_MERGE` fusionó celdas idénticas y eliminó 2. Más abajo, `OPT_DFF` agregó una señal de habilitación (`EN`) al flip-flop de `led`, porque `led` solo cambia cuando el contador llega al tope.
 
-![opt, habilitación del registro led](imgs/09_opt_muxtree_reduce_dff.png)
+![opt, habilitación del registro led](../imgs/09_opt_muxtree_reduce_dff.png)
 
 `OPT_CLEAN` eliminó 3 celdas y 11 cables sin uso, y se repitieron las pasadas.
 
-![opt, limpieza y repetición](imgs/10_opt_clean_rerun.png)
+![opt, limpieza y repetición](../imgs/10_opt_clean_rerun.png)
 
 La etapa termina con el mensaje `Finished fast OPT passes. (There is nothing left to do.)`. Enseguida se lanza `synth_gowin`.
 
-![opt terminado, inicio de synth_gowin](imgs/11_opt_fin_y_synth_gowin.png)
+![opt terminado, inicio de synth_gowin](../imgs/11_opt_fin_y_synth_gowin.png)
 
 ### 5.4 `synth_gowin`
 
 Es el flujo completo de síntesis hacia celdas de la familia Gowin. Carga primero la librería de simulación de celdas, `share/yosys/gowin/cells_sim.v`, y luego repite jerarquía, `proc` y chequeos antes de mapear a celdas físicas.
 
-![synth_gowin, jerarquía y proc](imgs/12_synth_gowin_hierarchy_proc.png)
+![synth_gowin, jerarquía y proc](../imgs/12_synth_gowin_hierarchy_proc.png)
 
-![synth_gowin, chequeo](imgs/13_synth_gowin_proc_check.png)
+![synth_gowin, chequeo](../imgs/13_synth_gowin_proc_check.png)
 
 El resultado queda en `top.json`.
 
@@ -204,7 +204,7 @@ El resultado queda en `top.json`.
 
 Imprime el conteo de recursos.
 
-![stat](imgs/14_stat_celdas.png)
+![stat](../imgs/14_stat_celdas.png)
 
 | Celda | Cantidad | Nota |
 |---|---|---|
@@ -255,7 +255,7 @@ Parámetros.
 | `--vopt cst=top.cst` | Archivo de pines. |
 | `--freq 27` | Frecuencia objetivo del reloj, en MHz. |
 
-![nextpnr](imgs/15_nextpnr_inicio.png)
+![nextpnr](../imgs/15_nextpnr_inicio.png)
 
 En la captura el primer intento falló porque se escribió `nextpnr` y no `nextpnr-himbaechel` (`no se encontró la orden`). El segundo usó el nombre correcto, y nextpnr eligió la microarquitectura `gowin`.
 
@@ -270,7 +270,7 @@ gowin_pack -d GW1N-9C -o top.fs pnr.json
 
 Genera el bitstream `top.fs`.
 
-![gowin_pack](imgs/16_gowin_pack.png)
+![gowin_pack](../imgs/16_gowin_pack.png)
 
 
 ## 8. Carga con openFPGALoader
@@ -289,11 +289,11 @@ openFPGALoader -b tangnano9k -f top.fs
 
 Secuencia observada con `-f`. Se analiza el archivo, se borran SRAM y flash, y se escribe la flash con barra de progreso.
 
-![Escritura de flash en progreso](imgs/17_openfpgaloader_escribiendo_flash.png)
+![Escritura de flash en progreso](../imgs/17_openfpgaloader_escribiendo_flash.png)
 
 Al terminar, el cargador verifica con un CRC.
 
-![CRC correcto](imgs/18_openfpgaloader_crc_success.png)
+![CRC correcto](../imgs/18_openfpgaloader_crc_success.png)
 
 
 
